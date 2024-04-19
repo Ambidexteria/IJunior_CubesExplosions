@@ -5,30 +5,26 @@ public class Explosion : MonoBehaviour
     [SerializeField] private float _explosionForce;
     [SerializeField] private float _radius;
     [SerializeField] private ParticleSystem _effect;
-    [SerializeField] private float _delay = 0.1f;
 
-    private void Start()
+    public void Explode(float forceMultiplyer = 1.0f, float radiusMultiplyer = 1.0f)
     {
-        Invoke(nameof(Explode), _delay);
-    }
+        Vector3 position = transform.position;
 
-    public void Explode()
-    {
-        Collider[] hits = Physics.OverlapSphere(transform.position, _radius);
+        Collider[] hits = Physics.OverlapSphere(position, _radius * radiusMultiplyer);
 
         foreach (Collider hit in hits)
         {
             if (hit.attachedRigidbody != null)
             {
-                Vector3 direction = (hit.transform.position - transform.position).normalized;
-                float distance = Vector3.Distance(hit.transform.position, transform.position);
-                float explosionForce = _explosionForce * (_radius - distance) / _radius;
+                Vector3 direction = (hit.transform.position - position).normalized;
+                float distance = Vector3.Distance(hit.transform.position, position);
+                float explosionForce = forceMultiplyer * _explosionForce * (_radius - distance) / _radius;
 
                 hit.attachedRigidbody.AddForce(explosionForce * direction, ForceMode.Force);
             }
         }
-        
-        Instantiate(_effect, gameObject.transform);
+
+        Instantiate(_effect, position, Quaternion.identity);
 
         Destroy(gameObject, _effect.main.duration);
     }

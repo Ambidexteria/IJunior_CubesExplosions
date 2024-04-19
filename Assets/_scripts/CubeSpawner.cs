@@ -3,12 +3,15 @@ using UnityEngine;
 
 public class CubeSpawner : MonoBehaviour
 {
-    [SerializeField] private CubeFactory _cubeFactory;
+    [SerializeField] private Explosion _explosionPrefab;
+    [SerializeField] private float _forceMultiplyer = 1.25f;
+    [SerializeField] private float _radiusMultiplyer = 1.25f;
+
+    [SerializeField, Space(30)] private CubeFactory _cubeFactory;
     [SerializeField] private float _scaleMultiplyer = 0.5f;
     [SerializeField] private float _dividingChanceMultiplyer = 0.5f;
     [SerializeField] private int _cubeAmountMin = 2;
     [SerializeField] private int _cubeAmountMax = 4;
-    [SerializeField] private Explosion _explosionPrefab;
     [SerializeField] private List<Cube> _spawnedCubes;
 
     private void Start()
@@ -19,31 +22,26 @@ public class CubeSpawner : MonoBehaviour
     private void SubscribeOnCubes()
     {
         if (_spawnedCubes.Count > 0)
-        {
             foreach (Cube cube in _spawnedCubes)
-            {
                 cube.Clicked += SpawnSmallerCubes;
-            }
-        }
     }
 
-    private void SpawnSmallerCubes(Transform point)
+    private void SpawnSmallerCubes(Cube parent)
     {
-        if (point.gameObject.TryGetComponent(out Cube cube) == false)
-            return;
-
-        if (Random.value < cube.DividingChance)
+        if (Random.value < parent.DividingChance)
         {
             int cubesAmount = Random.Range(_cubeAmountMin, _cubeAmountMax);
 
             for (int i = 0; i < cubesAmount; i++)
-                Spawn(cube);
-
-            Instantiate(_explosionPrefab, point.position, Quaternion.identity);
+                Spawn(parent);
+        }
+        else
+        {
+            Explosion explosion = Instantiate(_explosionPrefab, parent.transform.position, Quaternion.identity);
+            explosion.Explode(parent.ForceMultiplyer, parent.RadiusMultiplyer);
         }
 
-        _spawnedCubes.Remove(cube);
-        Destroy(point.gameObject);
+        DestroyCube(parent);
     }
 
     private void Spawn(Cube parent)
@@ -55,6 +53,16 @@ public class CubeSpawner : MonoBehaviour
         float dividingChance = parent.DividingChance * _dividingChanceMultiplyer;
         spawnedCube.SetDividingChance(dividingChance);
 
+        float forceMultiplyer = parent.ForceMultiplyer * _forceMultiplyer;
+        float radiusMultiplyer = parent.RadiusMultiplyer * _radiusMultiplyer;
+        spawnedCube.SetExplosionSettings(forceMultiplyer, radiusMultiplyer);
+
         _spawnedCubes.Add(spawnedCube);
+    }
+
+    private void DestroyCube(Cube cube)
+    {
+        _spawnedCubes.Remove(cube);
+        Destroy(cube.gameObject);
     }
 }

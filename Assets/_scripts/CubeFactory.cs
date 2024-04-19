@@ -6,7 +6,8 @@ public class CubeFactory : MonoBehaviour
 
     public Cube CreateCube(Transform point)
     {
-        Cube spawnedCube = Instantiate(_cubePrefab, point.position, Quaternion.identity);
+        Vector3 position = point.position + GetRandomPositionOffset();
+        Cube spawnedCube = Instantiate(_cubePrefab, position, Quaternion.identity);
         Recolor(spawnedCube.gameObject.GetComponent<Renderer>().material);
 
         return spawnedCube;
@@ -19,5 +20,12 @@ public class CubeFactory : MonoBehaviour
         float blue = Random.value;
 
         material.color = new Color(red, green, blue);
+    }
+
+    private Vector3 GetRandomPositionOffset()
+    {
+        Vector3 offset = new(Random.value, Random.value, Random.value);
+
+        return offset.normalized;
     }
 }
